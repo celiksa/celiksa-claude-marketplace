@@ -36,13 +36,22 @@ COMFYUI_PORT = int(os.environ.get("COMFYUI_PORT", "8188"))
 
 if not COMFYUI_ROOT:
     # Auto-detect common locations
-    for candidate in [
+    candidates = [
         os.path.expanduser("~/ComfyUI"),
         os.path.expanduser("~/AI/ComfyUI"),
-        "C:/AI/ComfyUI",
-        "D:/AI/ComfyUI",
         "/opt/ComfyUI",
-    ]:
+    ]
+    # Windows: check all drive letters
+    if sys.platform == "win32":
+        for drive in "CDEFG":
+            candidates.append(f"{drive}:/ComfyUI")
+            candidates.append(f"{drive}:/AI/ComfyUI")
+            candidates.append(f"{drive}:/StabilityMatrix/Packages/ComfyUI")
+    # Linux/Mac extras
+    else:
+        candidates.append(os.path.expanduser("~/.local/share/ComfyUI"))
+
+    for candidate in candidates:
         if os.path.isdir(os.path.join(candidate, "ComfyUI")):
             COMFYUI_ROOT = candidate
             break
