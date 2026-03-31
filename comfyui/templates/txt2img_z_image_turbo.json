@@ -1,0 +1,98 @@
+{
+  "_meta": {
+    "name": "txt2img_z_image_turbo",
+    "description": "Fast text-to-image using Z-Image-Turbo (~4 steps, ~3-5 seconds). Best for quick iterations.",
+    "category": "txt2img",
+    "parameters": {
+      "prompt": {"node": "27", "field": "inputs.text"},
+      "width": {"node": "13", "field": "inputs.width", "default": 1024},
+      "height": {"node": "13", "field": "inputs.height", "default": 1024},
+      "seed": {"node": "3", "field": "inputs.seed", "default": 0},
+      "steps": {"node": "3", "field": "inputs.steps", "default": 4},
+      "cfg": {"node": "3", "field": "inputs.cfg", "default": 1}
+    },
+    "models": {
+      "diffusion_models": "z_image_turbo_nvfp4.safetensors",
+      "text_encoders": "qwen_3_4b.safetensors",
+      "vae": "ae.safetensors"
+    }
+  },
+  "28": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "z_image_turbo_nvfp4.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "30": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen_3_4b.safetensors",
+      "type": "lumina2",
+      "device": "default"
+    }
+  },
+  "29": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    }
+  },
+  "11": {
+    "class_type": "ModelSamplingAuraFlow",
+    "inputs": {
+      "model": ["28", 0],
+      "shift": 3
+    }
+  },
+  "27": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["30", 0],
+      "text": ""
+    }
+  },
+  "33": {
+    "class_type": "ConditioningZeroOut",
+    "inputs": {
+      "conditioning": ["27", 0]
+    }
+  },
+  "13": {
+    "class_type": "EmptySD3LatentImage",
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    }
+  },
+  "3": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["11", 0],
+      "positive": ["27", 0],
+      "negative": ["33", 0],
+      "latent_image": ["13", 0],
+      "seed": 0,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "res_multistep",
+      "scheduler": "simple",
+      "denoise": 1
+    }
+  },
+  "8": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["3", 0],
+      "vae": ["29", 0]
+    }
+  },
+  "save": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "comfyui-plugin",
+      "images": ["8", 0]
+    }
+  }
+}

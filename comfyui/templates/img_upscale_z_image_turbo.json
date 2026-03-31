@@ -1,0 +1,141 @@
+{
+  "_meta": {
+    "name": "img_upscale_z_image_turbo",
+    "description": "Image upscaling using RealESRGAN 4x + Z-Image-Turbo refinement. Upscales and enhances image quality with AI refinement.",
+    "category": "upscale",
+    "requires_input_image": true,
+    "parameters": {
+      "prompt": {"node": "67", "field": "inputs.text", "default": "masterpiece, 8k"},
+      "seed": {"node": "69", "field": "inputs.seed", "default": 0},
+      "steps": {"node": "69", "field": "inputs.steps", "default": 5},
+      "denoise": {"node": "69", "field": "inputs.denoise", "default": 0.33},
+      "input_image": {"node": "load_image", "field": "inputs.image", "description": "Filename of uploaded image"}
+    },
+    "models": {
+      "diffusion_models": "z_image_turbo_nvfp4.safetensors",
+      "text_encoders": "qwen_3_4b.safetensors",
+      "vae": "ae.safetensors",
+      "upscale_models": "RealESRGAN_x4plus.safetensors"
+    },
+    "model_downloads": {
+      "RealESRGAN_x4plus.safetensors": {
+        "url": "https://huggingface.co/Comfy-Org/Real-ESRGAN_repackaged/resolve/main/RealESRGAN_x4plus.safetensors",
+        "category": "upscale_models",
+        "size_mb": 64
+      }
+    }
+  },
+  "load_image": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": ""
+    }
+  },
+  "78": {
+    "class_type": "ImageScaleToTotalPixels",
+    "inputs": {
+      "image": ["load_image", 0],
+      "upscale_method": "lanczos",
+      "megapixels": 1
+    }
+  },
+  "76": {
+    "class_type": "UpscaleModelLoader",
+    "inputs": {
+      "model_name": "RealESRGAN_x4plus.safetensors"
+    }
+  },
+  "79": {
+    "class_type": "ImageUpscaleWithModel",
+    "inputs": {
+      "upscale_model": ["76", 0],
+      "image": ["78", 0]
+    }
+  },
+  "81_scale": {
+    "class_type": "ImageScaleBy",
+    "inputs": {
+      "image": ["79", 0],
+      "upscale_method": "lanczos",
+      "scale_by": 0.5
+    }
+  },
+  "66": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "z_image_turbo_nvfp4.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "62": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen_3_4b.safetensors",
+      "type": "lumina2",
+      "device": "default"
+    }
+  },
+  "63": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    }
+  },
+  "70": {
+    "class_type": "ModelSamplingAuraFlow",
+    "inputs": {
+      "model": ["66", 0],
+      "shift": 3
+    }
+  },
+  "67": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["62", 0],
+      "text": "masterpiece, 8k"
+    }
+  },
+  "71": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["62", 0],
+      "text": ""
+    }
+  },
+  "80": {
+    "class_type": "VAEEncode",
+    "inputs": {
+      "pixels": ["81_scale", 0],
+      "vae": ["63", 0]
+    }
+  },
+  "69": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["70", 0],
+      "positive": ["67", 0],
+      "negative": ["71", 0],
+      "latent_image": ["80", 0],
+      "seed": 0,
+      "steps": 5,
+      "cfg": 1,
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "beta",
+      "denoise": 0.33
+    }
+  },
+  "65": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["69", 0],
+      "vae": ["63", 0]
+    }
+  },
+  "save": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "upscale",
+      "images": ["65", 0]
+    }
+  }
+}

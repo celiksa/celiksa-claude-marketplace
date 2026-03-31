@@ -1,0 +1,185 @@
+{
+  "_meta": {
+    "name": "txt2vid_wan22",
+    "description": "Text-to-video using Wan 2.2 with LightX2V 4-step acceleration. Dual-pass pipeline (high-noise + low-noise). Requires ~20GB+ models with CPU offloading.",
+    "category": "txt2vid",
+    "parameters": {
+      "prompt": {"node": "89", "field": "inputs.text"},
+      "seed": {"node": "81", "field": "inputs.noise_seed", "default": 0},
+      "width": {"node": "74", "field": "inputs.width", "default": 640},
+      "height": {"node": "74", "field": "inputs.height", "default": 640},
+      "length": {"node": "74", "field": "inputs.length", "default": 81},
+      "fps": {"node": "114", "field": "inputs.frame_rate", "default": 16}
+    },
+    "models": {
+      "diffusion_models": ["wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors", "wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors"],
+      "loras": ["wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors", "wan2.2_t2v_lightx2v_4steps_lora_v1.1_low_noise.safetensors"],
+      "text_encoders": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "vae": "wan_2.1_vae.safetensors"
+    },
+    "model_downloads": {
+      "wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors": {
+        "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors",
+        "category": "diffusion_models"
+      },
+      "wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors": {
+        "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors",
+        "category": "diffusion_models"
+      },
+      "wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors": {
+        "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_repackaged/resolve/main/split_files/loras/wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors",
+        "category": "loras"
+      },
+      "wan2.2_t2v_lightx2v_4steps_lora_v1.1_low_noise.safetensors": {
+        "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_repackaged/resolve/main/split_files/loras/wan2.2_t2v_lightx2v_4steps_lora_v1.1_low_noise.safetensors",
+        "category": "loras"
+      },
+      "umt5_xxl_fp8_e4m3fn_scaled.safetensors": {
+        "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+        "category": "text_encoders"
+      },
+      "wan_2.1_vae.safetensors": {
+        "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors",
+        "category": "vae"
+      }
+    }
+  },
+  "71": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "type": "wan",
+      "device": "default"
+    }
+  },
+  "73": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "wan_2.1_vae.safetensors"
+    }
+  },
+  "75": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "76": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "83": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": ["75", 0],
+      "lora_name": "wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors",
+      "strength_model": 1.0
+    }
+  },
+  "85": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": ["76", 0],
+      "lora_name": "wan2.2_t2v_lightx2v_4steps_lora_v1.1_low_noise.safetensors",
+      "strength_model": 1.0
+    }
+  },
+  "82": {
+    "class_type": "ModelSamplingSD3",
+    "inputs": {
+      "model": ["83", 0],
+      "shift": 5.0
+    }
+  },
+  "86": {
+    "class_type": "ModelSamplingSD3",
+    "inputs": {
+      "model": ["85", 0],
+      "shift": 5.0
+    }
+  },
+  "89": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["71", 0],
+      "text": ""
+    }
+  },
+  "72": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["71", 0],
+      "text": ""
+    }
+  },
+  "74": {
+    "class_type": "EmptyHunyuanLatentVideo",
+    "inputs": {
+      "width": 640,
+      "height": 640,
+      "length": 81,
+      "batch_size": 1
+    }
+  },
+  "81": {
+    "class_type": "KSamplerAdvanced",
+    "inputs": {
+      "model": ["82", 0],
+      "positive": ["89", 0],
+      "negative": ["72", 0],
+      "latent_image": ["74", 0],
+      "add_noise": "enable",
+      "noise_seed": 0,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "start_at_step": 0,
+      "end_at_step": 2,
+      "return_with_leftover_noise": "enable"
+    }
+  },
+  "78": {
+    "class_type": "KSamplerAdvanced",
+    "inputs": {
+      "model": ["86", 0],
+      "positive": ["89", 0],
+      "negative": ["72", 0],
+      "latent_image": ["81", 0],
+      "add_noise": "disable",
+      "noise_seed": 0,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "start_at_step": 2,
+      "end_at_step": 4,
+      "return_with_leftover_noise": "disable"
+    }
+  },
+  "87": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["78", 0],
+      "vae": ["73", 0]
+    }
+  },
+  "114": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": ["87", 0],
+      "frame_rate": 16
+    }
+  },
+  "save": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "wan22-t2v",
+      "images": ["87", 0]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "celiksa-claude-marketplace",
+  "description": "Custom Claude Code plugins by celiksa - AI generation tools, productivity, and more",
+  "owner": {
+    "name": "celiksa",
+    "email": "celiksa@users.noreply.github.com"
+  },
+  "plugins": [
+    {
+      "name": "comfyui",
+      "description": "Natural-language image generation via local ComfyUI - text-to-image, editing, upscaling, video, and ControlNet",
+      "category": "productivity",
+      "source": "./comfyui",
+      "homepage": "https://github.com/celiksa/celiksa-claude-marketplace"
+    }
+  ]
+}

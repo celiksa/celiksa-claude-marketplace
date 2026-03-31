@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "comfyui": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory", "${CLAUDE_PLUGIN_ROOT}/server",
+        "comfyui_mcp_server.py"
+      ],
+      "env": {
+        "COMFYUI_ROOT": "${COMFYUI_ROOT}"
+      }
+    }
+  }
+}

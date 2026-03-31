@@ -1,0 +1,9 @@
+{
+  "name": "comfyui",
+  "version": "0.1.0",
+  "description": "Natural-language image generation via local ComfyUI. Generate images, edit photos, upscale, create videos, and use ControlNet - all from natural language in Claude Code.",
+  "author": {
+    "name": "celiksa"
+  },
+  "homepage": "https://github.com/celiksa/comfyui-claude-plugin"
+}

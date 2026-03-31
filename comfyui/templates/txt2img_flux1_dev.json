@@ -1,0 +1,96 @@
+{
+  "_meta": {
+    "name": "txt2img_flux1_dev",
+    "description": "High-quality text-to-image using Flux 1 Dev (20 steps, ~30-60 seconds). Best for detailed, high-quality images.",
+    "category": "txt2img",
+    "parameters": {
+      "prompt": {"node": "5", "field": "inputs.clip_l"},
+      "prompt_t5": {"node": "5", "field": "inputs.t5xxl", "description": "Detailed prompt for T5 encoder (defaults to same as prompt)"},
+      "guidance": {"node": "5", "field": "inputs.guidance", "default": 3.5},
+      "width": {"node": "7", "field": "inputs.width", "default": 1024},
+      "height": {"node": "7", "field": "inputs.height", "default": 1024},
+      "seed": {"node": "8", "field": "inputs.seed", "default": 0},
+      "steps": {"node": "8", "field": "inputs.steps", "default": 20},
+      "cfg": {"node": "8", "field": "inputs.cfg", "default": 1}
+    },
+    "models": {
+      "diffusion_models": "flux1-dev-nvfp4.safetensors",
+      "text_encoders": ["clip_l.safetensors", "t5xxl_fp16.safetensors"],
+      "vae": "ae.safetensors"
+    }
+  },
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "flux1-dev-nvfp4.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "DualCLIPLoader",
+    "inputs": {
+      "clip_name1": "clip_l.safetensors",
+      "clip_name2": "t5xxl_fp16.safetensors",
+      "type": "flux",
+      "device": "default"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    }
+  },
+  "5": {
+    "class_type": "CLIPTextEncodeFlux",
+    "inputs": {
+      "clip": ["2", 0],
+      "clip_l": "",
+      "t5xxl": "",
+      "guidance": 3.5
+    }
+  },
+  "6": {
+    "class_type": "ConditioningZeroOut",
+    "inputs": {
+      "conditioning": ["5", 0]
+    }
+  },
+  "7": {
+    "class_type": "EmptySD3LatentImage",
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    }
+  },
+  "8": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["1", 0],
+      "positive": ["5", 0],
+      "negative": ["6", 0],
+      "latent_image": ["7", 0],
+      "seed": 0,
+      "steps": 20,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1
+    }
+  },
+  "9": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["8", 0],
+      "vae": ["3", 0]
+    }
+  },
+  "save": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "flux1-dev",
+      "images": ["9", 0]
+    }
+  }
+}
